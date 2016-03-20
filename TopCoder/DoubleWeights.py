@@ -1,3 +1,5 @@
+### SRM 685 Round 1, Div II
+### Unfinished
 
 class DoubleWeights:
     # tuple(string) * tuple(string) --> integer

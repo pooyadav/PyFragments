@@ -1,3 +1,5 @@
+### SRM 685 Round 1, Div II
+
 import itertools
 import math
 
