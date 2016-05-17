@@ -3,7 +3,7 @@
 ---
 
 #1
-1af8:Science isn't about why, it's about why not? 
+find the string at 1af8
 
 (input on $rdi)
 
@@ -17,17 +17,15 @@
 -16|---- ---- ---- ----| #5
 -32|---- ---- ---- ----| #6
 
-Well... So I choose: 
-
-1 2 3 1 2 3
+Well... So I choose a simple one.  
 
 # 3
 
-- scanf("%d %d", &3rd, &4th)
-- 3rd == 0x36e (926), 4th < 0x7
+- scanf("%d %d", &a, &b)
+- b == 0x36e (926), a < 0x7
 - no need to go over those switch clauses
 
-so... "1 926"
+so...
 
 # 4
 
@@ -57,7 +55,10 @@ n_i = list[n_(i-1)]
 
 We need to choose a start number (1st param) so that when we get f after exactly 0xc steps, and the sum of all these numbers along the path should add up to the 2nd param. So...
 
-7 93
-
 #6
+The main func takes use strtol(input, 0, 10) to get my input number(s)
 
+I actually have no idea what this func6 is doing, so I tried to input some random numbers to test its output, and monitor the $rdi, $rdx and $rax. It seems like that the $rax always ends up at pointing to a fixed position. Considering a final comparison between the input and (%rax), so I just go with this number on that position...
+
+#Fin
+Obviously, the same problem on the [official website](http://csapp.cs.cmu.edu/3e/students.html) seems much harder than the Coursera one. For example, no subroutines, and that makes challenge 6 a totally different monster.
