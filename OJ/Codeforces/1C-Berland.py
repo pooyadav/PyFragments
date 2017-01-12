@@ -1,9 +1,10 @@
+### http://codeforces.com/contest/1/problem/C
+### The solution here is over-complicated. Ther are bunch of shorter ones online.
+
 import sys
 import math
 
 N = 1000
-
-
 
 def find_circle_center(p1, p2, p3):
     (x1, y1) = p1 
@@ -24,7 +25,6 @@ def find_circle_center(p1, p2, p3):
         A1 = x2 - x1; B1 = y2 - y1;
         C1 = B1 * y_mid1 + A1 * x_mid1
         L1 = (A1, B1, -C1)
-    print(L1)
 
     x_mid2 = average(x2, x3); y_mid2 = average(y2, y3)
     if y2 == y3:
@@ -33,11 +33,9 @@ def find_circle_center(p1, p2, p3):
         A2 = x3 - x2; B2 = y3 - y2;
         C2 = B2 * y_mid2 + A2 * x_mid2
         L2 = (A2, B2, -C2)
-    print(L2)
 
     xp = intersection(L1, L2) 
     if xp:
-        print(xp)
         return xp 
     print("No single Intersection point detected.")
     return False
@@ -66,33 +64,43 @@ def distance(p1, p2):
 def near_integer(num):
     u = math.ceil(num);
     l = math.floor(num);
-    print("nearest:", num-l, num, u-num)
-    return math.isclose(u, num, rel_tol=1e-03) \
-        or math.isclose(l, num, rel_tol=1e-03)
+    return math.isclose(u, num, rel_tol=1e-04) \
+        or math.isclose(l, num, rel_tol=1e-04)
 
 def main():
     ps = []
-    fin = open('input.txt', 'r')
-    for line in fin.readlines():
-    #for line in sys.stdin:
+    # fin = open('input.txt', 'r')
+    # for line in fin.readlines():
+    for line in sys.stdin:
         (a, b) = line.split(' ')
         ps.append((float(a), float(b)))
     center = find_circle_center(ps[0], ps[1], ps[2])
     R = distance(center, ps[0])
+    
+    def center_angle(line):
+        # Using The Law of Sines 
+        # Center_angle without the Pi part
+        p1, p2 = line
+        # Should be: sin(theta) = a / (2*R) => theta = arcsin(a/(2R))
+        # But... Where the fxxk does this leading "2" come from?!!!!!
+        return 2 * math.asin(distance(p1, p2) / R * 0.5) / math.pi
+
+    Theta = list(map(center_angle, [(ps[0], ps[1]), (ps[1], ps[2]), (ps[2], ps[0])]))
     # find the smallest value of n that gives a near-integer value of s
+    # Some suggests using a "float gcd", thus avoiding the iteration...
+    # I don't think that is a mathematically sound function, 
+    # not to mention the float computing everywhere... 
     n = 0
     for n in range(3, N+1):
-        print(n)
-        s = 2 * R * math.sin(math.pi / n)
-        if # s fit SOME condition
+        # s = 2 * R * math.sin(math.pi / n)
+        div_result = [x * n / 2 for x in Theta]
+        if all([near_integer(x) for x in div_result]):
             break
         else:
             continue
     if n == 0:
         print("Error: input invalid.")
         return
-    n= 5
-    print("sides number is: %d" % n)
     area = 1 / 2 * n * R * R * math.sin(2 * math.pi / n)
     print("%.6f" % area)
     return area
@@ -108,6 +116,5 @@ def test():
     p6 = (-48.634784, 100.159986)
     p7 = (91.778633, 158.107739)
     
-
 #test()
 main()
