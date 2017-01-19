@@ -5,6 +5,7 @@ import commands
 import json
 import numpy as np
 import time
+import subprocess
 
 ERRORCODE=256
 N = 5
@@ -16,10 +17,10 @@ command = "iperf3 --json -4 -t 10 -c " + server
 
 while N > 0 :
     
-    code, result = commands.getstatusoutput(command)
-    # for interval in result["intervals"]:
-    # print result["intervals"]
-    if code == ERRORCODE:
+    #code, result = commands.getstatusoutput(command)
+    try:
+	    result = subprocess.check_output(command)
+	except:
         print "The server is busy running a test";
         time.sleep(1)
         continue

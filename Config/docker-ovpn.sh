@@ -1,9 +1,11 @@
+# curl -sSL https://get.docker.com | sh
 # Pick a name for the $OVPN_DATA data volume container, it will be created automatically.
 
 OVPN_DATA="ovpn-data"
 IP=`curl --silent ipecho.net/plain`
 CLIENTNAME="databox"
-IMAGE=kylemanna/openvpn
+#IMAGE=kylemanna/openvpn
+IMAGE=matrixanger/rpi-ovpn
 
 echo $IP, $OVPN_DATA, $CLIENTNAME
 
