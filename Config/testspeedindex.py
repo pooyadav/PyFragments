@@ -4,12 +4,13 @@ import matplotlib.pyplot as plt
 import matplotlib.pylab as pylab
 import numpy as np
 
-params = {'legend.fontsize': 'x-large',
-          'figure.figsize': (15, 5),
-         'axes.labelsize': 'x-large',
-         'axes.titlesize':'x-large',
-         'xtick.labelsize':'x-large',
-         'ytick.labelsize':'x-large'}
+font=25 #'x-large'
+params = {'legend.fontsize': font,
+          'figure.figsize': (15, 6.2),
+         'axes.labelsize': font,
+         'axes.titlesize': font,
+         'xtick.labelsize':font,
+         'ytick.labelsize':font}
 pylab.rcParams.update(params)
 
 def download_alexa():
@@ -74,8 +75,10 @@ def plotSI(f1, f2):
     plt.axvline(x=mean2, color='r', linestyle=':')
 
     plt.xlim([0, 10000])
-    plt.grid(True)
-    plt.legend(loc='lower right')
+    #plt.grid(True)
+    plt.legend(loc='lower right', frameon=False)
+    ax = plt.axes()
+    ax.set_aspect(.38 /ax.get_data_ratio())
     # plt.title('Speed Index Distribution (VPN vs. Direct) -- Top 500 sites')
     plt.xlabel('Speed Index')
     plt.ylabel('Percentile')

@@ -10,12 +10,21 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.pylab as pylab
 
+font=25 #'x-large'
+params = {'legend.fontsize': font,
+          'figure.figsize': (15, 6),
+         'axes.labelsize': font,
+         'axes.titlesize': font,
+         'xtick.labelsize':font,
+         'ytick.labelsize':font}
+pylab.rcParams.update(params)
+
 ERRORCODE=256
 N = 5
 speed = []
 # server = "ping.online.net" # Could be a list
 server = "207.154.194.38"
-command = "/usr/bin/iperf3 --json -4 -t 10 -c " + server
+command = "/usr/bin/iperf3 --json -4 -t 100 -c " + server
 cmd = command.split(" ")
 
 def iperf(output):
@@ -60,19 +69,33 @@ def plot(fn1, fn2):
         df = pd.read_csv(filename, index_col=False, header=0)
         data = df.columns[:-1]
         speed = data.tolist()
-        speed = list(map(float, speed))
+        speed_cut = map(lambda x: x[:6], speed)
+        # print speed_cut
+        speed = list(map(float, speed_cut))
         return speed
 
     sp1 = getlist(fn1)
     sp2 = getlist(fn2)
 
-    n, bins, patches = plt.hist(sp1, bins=30, normed=1, histtype='step', linewidth=2, color='g',
+    mean1 = np.mean(sp1)
+    mean2 = np.mean(sp2)
+
+    n, bins, patches = plt.hist(sp1, bins=50, normed=1, histtype='step', linewidth=2, color='g',
                                cumulative=True, linestyle='--', label='Direct Connection')
-    n, bins, patches = plt.hist(sp2, bins=30, normed=1, histtype='step', linewidth=2, color='r',
-                               cumulative=True, label='Connection Via VPN')
-    plt.legend(loc='lower right')
+    n, bins, patches = plt.hist(sp2, bins=50, normed=1, histtype='step', linewidth=2, color='r',
+                               cumulative=True, label='Connection via VPN')
+    plt.axvline(x=mean1, color='g', linestyle=':')
+    plt.axvline(x=mean2, color='r', linestyle=':')
+
+    plt.xlim(0,80)
+    plt.grid(False)
+    ax = plt.axes()
+    ax.set_aspect(.38 /ax.get_data_ratio())
+    plt.xlabel("Bandwidth (Mbps)")
+    plt.ylabel("Percentile")
+    plt.legend(loc='upper left', frameon=False)
     plt.show()
 
-#iperf('directiperf.csv')
+# iperf('directiperf.csv')
 # iperf('vpniperf.csv')
 plot('directiperf.csv', 'vpniperf.csv')
