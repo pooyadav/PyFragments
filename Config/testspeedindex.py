@@ -1,46 +1,91 @@
-#!/usr/bin/python
+import urllib, os, json
+import pandas as pd
+import matplotlib.pyplot as plt
+import matplotlib.pylab as pylab
+import numpy as np
 
-# Suppose (browsertime)[https://github.com/sitespeedio/browsertime] is installed under home dir
-# Installation: npm install --production in the source directory
+params = {'legend.fontsize': 'x-large',
+          'figure.figsize': (15, 5),
+         'axes.labelsize': 'x-large',
+         'axes.titlesize':'x-large',
+         'xtick.labelsize':'x-large',
+         'ytick.labelsize':'x-large'}
+pylab.rcParams.update(params)
 
-from os import system 
-import commands
-import json
+def download_alexa():
 
-# param_prefix = "docker run --privileged --shm-size=1g --rm -v \"$(pwd)\":/browsertime-results sitespeedio/browsertime http://www."
+    testfile = urllib.URLopener()
+    testfile.retrieve("http://s3.amazonaws.com/alexa-static/top-1m.csv.zip", "top-1m.csv.zip")
+    os.system('unzip top-1m.csv.zip && cut -d "," -f2 top-1m.csv > top-1m.txt && rm top-1m.csv*')
 
-# We only test the http connection here
-param_prefix = "home/sam/browsertime/bin/browsertime.js http://www."
-_, pwd = commands.getstatusoutput("pwd")
-results = pwd + '/browsertime-results/www.'
-alexa = open('top5.txt', 'r')
-sites = []
-for site in alexa.readlines():
-    sites.append(site)
-    command = param_prefix+site
-    try:
-        # This command should only run once
-        # Consider seperate this part out.
-        system(command + ' > /dev/null')
-    except:
-        continue
+def topN(n):
+    command = 'head -n ' + str(n) + ' top-1m.txt 1<> top-' + str(n) + '-sites.txt'
+    os.system(command)
 
-speedindexes = []
+def speedIndex(filename):
+    param_prefix = 'docker run --privileged --shm-size=1g --rm -v \"$(pwd)\":/browsertime-results sitespeedio/browsertime -n 2 --skipHar http://www.'
+    with open(filename, 'r') as f:
+        for site in f.readlines():
+            command = param_prefix + site + ' > /dev/null'
+            try:
+                os.system(command)
+            except:
+                continue
 
-for site in sites:
-    # Use the newst results, which does not have to be the case everytime
-    # Tune the sort part
-    command = "ls " + results + site.rstrip() + " | sort -r | head -n1"
-    # os.system leads to getting result code rather than output on stdout
-    _, subdir = commands.getstatusoutput(command)
-    prefix = results + site.rstrip() + "/" + subdir 
-    
-    
-    with open(prefix+"/browsertime.json", 'r') as result:
-        data = json.load(result) # A big json file. More memory-friendly solution?
-        speedindex_med = data["statistics"]["timings"]["rumSpeedIndex"]["median"] 
-        speedindexes.append(speedindex_med)
+def getResults(filename='SI-result.txt'):
+    rootDir = '.'
+    speedindexes = []
+    for dirName, subdirList, fileList in os.walk(rootDir, topdown=False):
+        # print('Found directory: %s' % dirName)
+        for fname in fileList:
+            if fname == 'browsertime.json':
+                #print '\t%s' % dirName+fname
+                file = dirName+ '/' + fname
+                # print file
+                with open(file, 'r') as result:
+                    data = json.load(result)
+                    speedindex_med = data["statistics"]["timings"]["rumSpeedIndex"]["median"] 
+                    speedindexes.append(speedindex_med)
 
-with open(pwd+'/speedindex.txt', 'w') as f:
-    for item in speedindexes:
-        f.write("%s\t" % item)
+    with open(filename, 'w') as f:
+        for item in speedindexes:
+            f.write("%s, " % item)
+    return speedindexes
+
+def plotSI(f1, f2):
+    def getdata(filename):
+        df = pd.read_csv(filename, index_col=False, header=0)
+        data = df.columns[:-1]
+        speedindex = data.tolist()
+        speedindex = list(map(float, speedindex))
+        return speedindex
+
+    speedindex = getdata(f1)
+    speedindex2 = getdata(f2)
+    mean = np.mean(speedindex)
+    mean2 = np.mean(speedindex2)
+   
+    n, bins, patches = plt.hist(speedindex, bins=1000, normed=1, histtype='step', linewidth=2, color='g',
+                               cumulative=True, linestyle='--', label='Direct Connection')
+    n, bins, patches = plt.hist(speedindex2, bins=1000, normed=1, histtype='step', linewidth=2, color='r',
+                               cumulative=True, label='Connection Via VPN')
+
+    plt.axvline(x=mean, color='g', linestyle=':')
+    plt.axvline(x=mean2, color='r', linestyle=':')
+
+    plt.xlim([0, 10000])
+    plt.grid(True)
+    plt.legend(loc='lower right')
+    # plt.title('Speed Index Distribution (VPN vs. Direct) -- Top 500 sites')
+    plt.xlabel('Speed Index')
+    plt.ylabel('Percentile')
+    plt.show()
+
+# topN(500)
+# speedIndex('../top-500-sites.txt')
+# getResults('SI-result.txt')
+# getResults('direct-si.csv')
+## cd ..
+plotSI('./vpnSI/SI-result.txt', './directSI/SI-result.txt')
+
+# in ./browsertime-results, run `python ../testspeedi)ndex.py`
